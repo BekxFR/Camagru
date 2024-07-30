@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  camagru_webapp:
+    container_name: camagru_webapp
+    image: camagru_webapp
+    build: 
+      context: ./WebApp
+      dockerfile: Dockerfile
+    restart: on-failure
+    # depends_on:
+    #   camagru_db:
+    #     condition: service_healthy
+    environment:
+      - PHP_FPM_USER=nginx
+      - PHP_FPM_GROUP=nginx
+    networks:
+      - camagru_network
+    volumes:
+      - ./WebApp/src:/var/www/html
+    ports:
+      - "8085:80"
+
+  # camagru_db:
+  #   container_name: camagru_db
+  #   image: mysql:lts
+  #   restart: always
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: test
+      # MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      # MYSQL_USER: "user"
+      # MYSQL_PASSWORD: "password"
+      # MYSQL_DATABASE: "database"
+    # healthcheck:
+    #   test: "/usr/bin/mysql --user=root --password=rootpasswd --execute \"SHOW DATABASES;\""
+    #   interval: 2s
+    #   timeout: 20s
+    #   retries: 10
+    # networks:
+    #   - camagru_network
+    # ports:
+    #   - "3306"
+    # volumes:
+    #   - camagru_db_data:/var/lib/mysql
+
+# volumes:
+#   camagru_db_data:
+
+networks:
+  camagru_network:
+    driver: bridge

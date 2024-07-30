@@ -50,17 +50,25 @@ sed -i \
 /usr/local/etc/php/php.ini
 
 ADD scripts/start.sh /start.sh
+ADD scripts/entrypoint.sh /entrypoint.sh
+RUN chmod +x /start.sh /entrypoint.sh
 
 ADD conf/nginx-site.conf /etc/nginx/sites-available/default.conf
 
 RUN ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf
 
-RUN chmod 755 /start.sh
+ADD /src /var/www/html
 
-ADD src/ /var/www/html/
+# RUN chown -R 100:101 /var/www/html
+# RUN chown -Rf nginx:nginx /var/www/html
+# USER nginx
+# RUN find /var/www/html -type d -exec chmod 755 {} \;
+# RUN find /var/www/html -type f -exec chmod 644 {} \;
+# USER root
 
 EXPOSE 80
 
-WORKDIR "/var/www/html"
+# WORKDIR "/var/www/html"
+# ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["/start.sh"]
