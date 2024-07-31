@@ -6,19 +6,12 @@ ENV php_conf=/usr/local/etc/php-fpm.conf
 ENV fpm_conf=/usr/local/etc/php-fpm.d/www.conf
 ENV php_vars=/usr/local/etc/php/conf.d/docker-vars.ini
 
-RUN apk add --no-cache nginx
-
 RUN apk update && apk upgrade &&\
 apk add --no-cache \
 bash \
 coreutils
 
-RUN rm -Rf /etc/nginx/nginx.conf
-ADD conf/nginx.conf /etc/nginx/nginx.conf
-
-RUN mkdir -p /etc/nginx/sites-available/ && \
-mkdir -p /etc/nginx/sites-enabled/ && \
-rm -Rf /var/www/* && \
+RUN rm -Rf /var/www/* && \
 mkdir /var/www/html/
 
 RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
@@ -33,13 +26,10 @@ sed -i \
     -e "s/pm.min_spare_servers = 1/pm.min_spare_servers = 2/g" \
     -e "s/pm.max_spare_servers = 3/pm.max_spare_servers = 4/g" \
     -e "s/;pm.max_requests = 500/pm.max_requests = 200/g" \
-    -e "s/user = www-data/user = nginx/g" \
-    -e "s/group = www-data/group = nginx/g" \
-    -e "s/;listen.mode = 0660/listen.mode = 0666/g" \
-    -e "s/;listen.owner = www-data/listen.owner = nginx/g" \
-    -e "s/;listen.group = www-data/listen.group = nginx/g" \
-    -e "s/;listen.group = nginx/listen.group = nginx/g" \
-    -e "s/listen = 127.0.0.1:9000/listen = \/var\/run\/php-fpm.sock/g" \
+    -e "s/listen = 127.0.0.1:9000/listen = 9000/g" \
+    -e "s/;listen.mode = 0660/listen.mode = 0660/g" \
+    -e "s/;listen.owner = www-data/listen.owner = www-data/g" \
+    -e "s/;listen.group = www-data/listen.group = www-data/g" \
     -e "s/^;clear_env = no$/clear_env = no/" \
     ${fpm_conf}
 
@@ -50,25 +40,8 @@ sed -i \
 /usr/local/etc/php/php.ini
 
 ADD scripts/start.sh /start.sh
-ADD scripts/entrypoint.sh /entrypoint.sh
-RUN chmod +x /start.sh /entrypoint.sh
+RUN chmod +x /start.sh
 
-ADD conf/nginx-site.conf /etc/nginx/sites-available/default.conf
-
-RUN ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf
-
-ADD /src /var/www/html
-
-# RUN chown -R 100:101 /var/www/html
-# RUN chown -Rf nginx:nginx /var/www/html
-# USER nginx
-# RUN find /var/www/html -type d -exec chmod 755 {} \;
-# RUN find /var/www/html -type f -exec chmod 644 {} \;
-# USER root
-
-EXPOSE 80
-
-# WORKDIR "/var/www/html"
-# ENTRYPOINT ["/entrypoint.sh"]
+EXPOSE 9000
 
 CMD ["/start.sh"]

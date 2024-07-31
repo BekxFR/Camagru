@@ -1,9 +1,27 @@
 version: "3.8"
 
 services:
-  camagru_webapp:
-    container_name: camagru_webapp
-    image: camagru_webapp
+  camagru_nginx:
+    container_name: camagru_nginx
+    image: camagru_nginx
+    build: 
+      context: ./Nginx
+      dockerfile: Dockerfile
+    restart: on-failure
+    # depends_on:
+    #   camagru_db:
+    #     condition: service_healthy
+    networks:
+      - camagru_network
+    volumes:
+      - ./src:/var/www/html:ro
+      - ./Nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8085:80"
+
+  camagru_php:
+    container_name: camagru_php
+    image: camagru_php
     build: 
       context: ./WebApp
       dockerfile: Dockerfile
@@ -11,15 +29,12 @@ services:
     # depends_on:
     #   camagru_db:
     #     condition: service_healthy
-    environment:
-      - PHP_FPM_USER=nginx
-      - PHP_FPM_GROUP=nginx
     networks:
       - camagru_network
     volumes:
-      - ./WebApp/src:/var/www/html
+      - ./src:/var/www/html
     ports:
-      - "8085:80"
+      - "9000"
 
   # camagru_db:
   #   container_name: camagru_db
